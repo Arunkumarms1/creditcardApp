@@ -1,6 +1,7 @@
 package com.bank.creditcard.controller;
 
 import com.bank.creditcard.exceptionhandler.InvalidInput;
+import com.bank.creditcard.exceptionhandler.ResourceNotFound;
 import com.bank.creditcard.models.CreditCardBillPayRequest;
 import com.bank.creditcard.models.CreditCardStatementRequest;
 import com.bank.creditcard.models.PaymentInfo;
@@ -35,7 +36,7 @@ public class CoreBankingController {
     }
 
     @PostMapping("/credit/payCardBill")
-    public ResponseEntity<String> payCreditCardBill(@RequestBody CreditCardBillPayRequest payRequest, @AuthenticationPrincipal UserDetails userDetails) throws InvalidInput {
+    public ResponseEntity<String> payCreditCardBill(@RequestBody CreditCardBillPayRequest payRequest, @AuthenticationPrincipal UserDetails userDetails) throws InvalidInput, ResourceNotFound {
         return ResponseEntity.ok(coreBankingService.payCreditCardBill(userDetails.getUsername(), payRequest));
     }
 

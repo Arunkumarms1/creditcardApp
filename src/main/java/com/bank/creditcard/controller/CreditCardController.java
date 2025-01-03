@@ -1,5 +1,6 @@
 package com.bank.creditcard.controller;
 
+import com.bank.creditcard.exceptionhandler.ResourceNotFound;
 import com.bank.creditcard.models.CreditCardDto;
 import com.bank.creditcard.service.CreditCardService;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class CreditCardController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createCreditCard(@RequestBody CreditCardDto creditCardDto, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<CreditCardDto> createCreditCard(@RequestBody CreditCardDto creditCardDto, @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(creditCardService.addCreditCard(userDetails.getUsername(), creditCardDto));
     }
 
@@ -33,6 +34,11 @@ public class CreditCardController {
     @DeleteMapping("/{cardNumber}")
     public ResponseEntity<String> deleteCreditCard(@PathVariable String cardNumber) {
         return ResponseEntity.ok(creditCardService.deleteCreditCard(cardNumber));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CreditCardDto> getCreditCard(@AuthenticationPrincipal UserDetails user, @PathVariable String id) throws ResourceNotFound {
+        return ResponseEntity.ok(creditCardService.getCard(user.getUsername(), id));
     }
 
 }

@@ -54,4 +54,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleInsufficientFunds(AuthenticationException exception) {
         return new ResponseEntity<>(exception.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(ResourceNotFound.class)
+    public ResponseEntity<String> handleResourceNotFound(ResourceNotFound exception) {
+        return new ResponseEntity<>(exception.getMessage(), new HttpHeaders(), HttpStatus.NOT_FOUND);
+    }
 }

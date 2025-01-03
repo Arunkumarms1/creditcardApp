@@ -23,6 +23,7 @@ public class UserController {
         this.bankUserService = bankUserService;
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping
     public ResponseEntity<UserDto> updateAppUser(@RequestBody UserDto user, @AuthenticationPrincipal UserDetails userDetails) throws InvalidInput {
         UserDto updatedAppUser = bankUserService.updateUser(user,userDetails.getUsername());
@@ -44,5 +45,7 @@ public class UserController {
     public ResponseEntity<Set<CreditCardDto>> getCreditCards(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(bankUserService.getCards(userDetails.getUsername()));
     }
+
+    //getallusers paged
 
 }

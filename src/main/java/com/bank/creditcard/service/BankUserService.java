@@ -7,6 +7,7 @@ import com.bank.creditcard.exceptionhandler.InvalidInput;
 import com.bank.creditcard.models.CreditCardDto;
 import com.bank.creditcard.repositories.BankUserRepository;
 import com.bank.creditcard.repositories.RoleRepository;
+import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,6 +20,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class BankUserService implements UserDetailsService {
     private static final Logger log = LogManager.getLogger(BankUserService.class);
     private final BankUserRepository userRepository;
@@ -51,8 +53,9 @@ public class BankUserService implements UserDetailsService {
             BankUser user = new BankUser();
             user.setUsername(userDto.getUsername());
             user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+            Role role = new Role("USER");
             Set<Role> roles = new HashSet<>();
-            userDto.getRoles().forEach(role -> roles.add(new Role(role)));
+            roles.add(role);
             user.setRoles(roles);
             roleRepository.saveAll(roles);
             return userRepository.save(user).getUsername() + " Added";
@@ -73,6 +76,10 @@ public class BankUserService implements UserDetailsService {
             BankUser user = existing.orElseThrow(() -> new UsernameNotFoundException("Username not found"));
             user.setEmail(userDto.getEmail());
             user.setPhone(userDto.getPhone());
+            Set<Role> roles = new HashSet<>();
+            userDto.getRoles().forEach(role -> roles.add(new Role(role)));
+            roleRepository.saveAll(roles);
+            user.setRoles(roles);
             userRepository.save(user);
             return userDto;
         } else {

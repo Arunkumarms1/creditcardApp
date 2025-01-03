@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.security.SignatureException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,7 +47,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
                     if (jwtService.isTokenValid(token, userDetails.getUsername())) {
                         List<String> roles = jwtService.extractRoles(token);
-                        System.out.println(roles);
                         List<GrantedAuthority> authorities = roles.stream()
                                 .map(SimpleGrantedAuthority::new)
                                 .collect(Collectors.toList());
@@ -60,6 +60,10 @@ public class JwtFilter extends OncePerRequestFilter {
         } catch (ExpiredJwtException e) {
             logger.warn("Token expired");
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.getWriter().write(e.getLocalizedMessage());
+        } catch (Exception e) {
+            logger.warn("Invalid token" + e.getMessage());
+            response.setStatus(HttpStatus.FORBIDDEN.value());
             response.getWriter().write(e.getLocalizedMessage());
         }
     }

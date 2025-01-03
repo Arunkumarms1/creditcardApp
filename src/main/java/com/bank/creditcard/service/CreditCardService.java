@@ -2,16 +2,19 @@ package com.bank.creditcard.service;
 
 import com.bank.creditcard.entities.BankUser;
 import com.bank.creditcard.entities.CreditCard;
+import com.bank.creditcard.exceptionhandler.ResourceNotFound;
 import com.bank.creditcard.models.CreditCardDto;
 import com.bank.creditcard.repositories.BankUserRepository;
 import com.bank.creditcard.repositories.CreditCardRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @Service
+@Transactional
 public class CreditCardService {
 
     private static final Logger log = LogManager.getLogger(CreditCardService.class);
@@ -29,15 +32,16 @@ public class CreditCardService {
      *
      * @param user          username
      * @param creditCardDto creditCard details
-     * @return String status
+     * @return CreditCardDto status
      */
-    public String addCreditCard(String user, CreditCardDto creditCardDto) {
+    public CreditCardDto addCreditCard(String user, CreditCardDto creditCardDto) {
         CreditCard creditCard = new CreditCard();
         creditCard.setTotalLimit(creditCardDto.getLimit());
         creditCard.setAvailableLimit(creditCardDto.getLimit());
         BankUser bankUser = userRepository.findByUsername(user).orElseThrow();
         creditCard.setUser(bankUser);
-        return "Card Saved";
+        CreditCard saved = cardRepository.save(creditCard);
+        return new CreditCardDto(saved.getCardNumber(), saved.getTotalLimit());
     }
 
     /**
@@ -79,5 +83,19 @@ public class CreditCardService {
         Optional<CreditCard> card = cardRepository.findByCardNumber(cardId);
         CreditCard creditCard = card.orElseThrow();
         return new CreditCardDto(creditCard.getCardNumber(), creditCard.getAvailableLimit());
+    }
+
+    /**
+     * @param username
+     * @param
+     * @return
+     */
+    public CreditCardDto getCard(String username, String cardId) throws ResourceNotFound {
+        Optional<CreditCard> card = cardRepository.findByCardNumber(cardId);
+        CreditCard creditCard = card.orElseThrow();
+        if (creditCard.getUser().getUsername().equals(username)) {
+            return new CreditCardDto(creditCard.getCardNumber(), creditCard.getTotalLimit(), creditCard.getUtilisedLimit());
+        }
+        throw new ResourceNotFound("Card not found");
     }
 }

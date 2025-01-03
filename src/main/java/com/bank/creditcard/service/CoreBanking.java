@@ -5,17 +5,22 @@ import com.bank.creditcard.entities.CreditCard;
 import com.bank.creditcard.entities.Statement;
 import com.bank.creditcard.exceptionhandler.InsufficientFunds;
 import com.bank.creditcard.exceptionhandler.InvalidInput;
+import com.bank.creditcard.exceptionhandler.ResourceNotFound;
 import com.bank.creditcard.models.*;
 import com.bank.creditcard.repositories.BankUserRepository;
 import com.bank.creditcard.repositories.CreditCardRepository;
+import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 @Service
+@Transactional
 public class CoreBanking {
 
     private static final Logger log = LogManager.getLogger(CoreBanking.class);
@@ -46,6 +51,7 @@ public class CoreBanking {
             statements.setMerchantId(paymentInfo.getBillDto().getMerchantId());
             statements.setPaymentStatus(true);
             statements.setCreditCard(creditCard);
+            statements.setType(PaymentType.DEBIT);
             creditCard.getStatements().add(statements);
             user.getCreditCards().add(creditCard);
             userRepository.save(user);
@@ -65,13 +71,19 @@ public class CoreBanking {
     public StatementWrapper getStatements(CreditCardStatementRequest statementDto, String username) {
         BankUser user = userRepository.findByUsername(username).orElseThrow();
         CreditCard creditCard = user.getCreditCards().stream()
-                .filter(card -> card.getCardNumber().equals(statementDto.getCardNumber())).findAny().orElseThrow();
+                .filter(card -> card.getCardNumber().equals(statementDto.getCardNumber()))
+                .findAny().orElseThrow();
+
         Set<StatementDto> creditCardStatementDto = new HashSet<>();
-        creditCard.getStatements().stream().filter(statement -> statement.getIssued().after(statementDto.getStartDate()) &&
-                        statement.getIssued().before(statementDto.getEndDate()))
-                .forEach(statement -> creditCardStatementDto.add(new StatementDto(statement.getIssued()
-                        , statement.getAmount(), statement.getMerchantId())));
-        long totalDue = creditCardStatementDto.stream().map(StatementDto::getAmount).mapToLong(Long::longValue).sum();
+        creditCard.getStatements().stream()
+                .filter(statement -> statement.getIssued().after(statementDto.getStartDate()) && statement.getIssued().before(statementDto.getEndDate()))
+                .forEach(statement -> creditCardStatementDto.add(new StatementDto(statement.getIssued(), statement.getAmount(), statement.getMerchantId(), statement.isPaymentStatus(), statement.getType())));
+
+        long totalDue = creditCardStatementDto.stream()
+                .filter(dto -> dto.getPaymentType().equals(PaymentType.DEBIT))
+                .map(StatementDto::getAmount)
+                .mapToLong(Long::longValue).sum();
+
         return new StatementWrapper(totalDue, statementDto.getCardNumber(), creditCardStatementDto);
     }
 
@@ -82,11 +94,18 @@ public class CoreBanking {
      * @param payRequest payRequest
      * @return String status
      */
-    public String payCreditCardBill(String username, CreditCardBillPayRequest payRequest) throws InvalidInput {
+    public String payCreditCardBill(String username, CreditCardBillPayRequest payRequest) throws InvalidInput, ResourceNotFound {
         BankUser user = userRepository.findByUsername(username).orElseThrow();
         CreditCard creditCard = user.getCreditCards().stream()
-                .filter(card -> card.getCardNumber().equals(payRequest.getCardNumber())).findAny().orElseThrow();
+                .filter(card -> card.getCardNumber().equals(payRequest.getCardNumber())).findAny()
+                .orElseThrow(() -> new ResourceNotFound("User don't have specified card"));
+
         if (payRequest.getTotalAmountToPay() <= creditCard.getUtilisedLimit()) {
+            Statement statement = new Statement("ABC Bank", new Date(), true, PaymentType.CREDIT);
+            statement.setPaymentStatus(true);
+            statement.setAmount(payRequest.getTotalAmountToPay());
+            statement.setCreditCard(creditCard);
+            creditCard.getStatements().add(statement);
             creditCard.setUtilisedLimit(creditCard.getUtilisedLimit() - payRequest.getTotalAmountToPay());
             creditCard.setAvailableLimit(creditCard.getAvailableLimit() + payRequest.getTotalAmountToPay());
             user.getCreditCards().add(creditCard);

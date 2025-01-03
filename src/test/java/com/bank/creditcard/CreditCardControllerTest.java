@@ -2,6 +2,7 @@ package com.bank.creditcard;
 
 import com.bank.creditcard.entities.BankUser;
 import com.bank.creditcard.entities.Role;
+import com.bank.creditcard.models.CreditCardDto;
 import com.bank.creditcard.service.BankUserService;
 import com.bank.creditcard.service.CreditCardService;
 import com.bank.creditcard.utils.JwtService;
@@ -41,7 +42,7 @@ public class CreditCardControllerTest {
     public void createCardTest() throws Exception {
         String token = jwtService.generateToken(getTestUser("USER"));
         when(service.loadUserByUsername("test")).thenReturn(getTestUser("USER"));
-        when(creditCardService.addCreditCard(any(), any())).thenReturn("Card Saved");
+        when(creditCardService.addCreditCard(any(), any())).thenReturn(new CreditCardDto("2523452345", 10000));
         mockMvc.perform(post("/credit/create")
                         .contentType("application/json")
                         .header("Authorization", "Bearer " + token)
