@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.security.SignatureException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,9 +61,9 @@ public class JwtFilter extends OncePerRequestFilter {
             logger.warn("Token expired");
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.getWriter().write(e.getLocalizedMessage());
-        } catch (Exception e) {
-            logger.warn("Invalid token" + e.getMessage());
-            response.setStatus(HttpStatus.FORBIDDEN.value());
+        } catch (BadCredentialsException e) {
+            logger.warn(e.getMessage());
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.getWriter().write(e.getLocalizedMessage());
         }
     }

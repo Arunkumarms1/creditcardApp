@@ -14,7 +14,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -57,6 +56,7 @@ public class CoreBanking {
             userRepository.save(user);
             return "Payment Completed";
         } else {
+            log.warn("Payment Failed due to insufficient funds");
             throw new InsufficientFunds("Payment Failed due to insufficient funds");
         }
     }
@@ -112,6 +112,7 @@ public class CoreBanking {
             userRepository.save(user);
             return "Payment Completed";
         } else {
+            log.warn("Please check the payable amount");
             throw new InvalidInput("Please check the payable amount");
         }
     }

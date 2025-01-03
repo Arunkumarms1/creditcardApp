@@ -86,9 +86,11 @@ public class CreditCardService {
     }
 
     /**
-     * @param username
-     * @param
-     * @return
+     * Fetches a credit card by username and card number
+     *
+     * @param username username
+     * @param cardId card number
+     * @return CreditCardDto
      */
     public CreditCardDto getCard(String username, String cardId) throws ResourceNotFound {
         Optional<CreditCard> card = cardRepository.findByCardNumber(cardId);
