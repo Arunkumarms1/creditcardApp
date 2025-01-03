@@ -26,7 +26,7 @@ public class CreditCardController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<String> updateCreditCard(@RequestBody CreditCardDto creditCardDto, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<String> updateCreditCard(@RequestBody CreditCardDto creditCardDto, @AuthenticationPrincipal UserDetails userDetails) throws ResourceNotFound {
         return ResponseEntity.ok(creditCardService.updateCreditCard(userDetails.getUsername(), creditCardDto));
     }
 

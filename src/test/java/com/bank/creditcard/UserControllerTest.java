@@ -40,7 +40,7 @@ public class UserControllerTest {
         userDto.setPassword("password");
         String token = jwtService.generateToken(getTestUser("USER"));
         when(service.loadUserByUsername(any())).thenReturn(getTestUser("USER"));
-        when(service.updateUser(any(), any())).thenReturn(userDto);
+        when(service.updateUser(any())).thenReturn(userDto);
         mockMvc.perform(put("/user")
                         .contentType("application/json")
                         .header("Authorization", "Bearer " + token)

@@ -51,11 +51,13 @@ public class CreditCardService {
      * @param creditCardDto creditCard details
      * @return String status
      */
-    public String updateCreditCard(String user, CreditCardDto creditCardDto) {
+    public String updateCreditCard(String user, CreditCardDto creditCardDto) throws ResourceNotFound {
         CreditCard creditCard = cardRepository.findByCardNumber(creditCardDto.getCardNumber()).orElseThrow();
-        creditCard.setTotalLimit(creditCardDto.getLimit());
-        cardRepository.save(creditCard);
-        return "Card Updated";
+        if (creditCard.getUser().getUsername().equals(user)) {
+            creditCard.setTotalLimit(creditCardDto.getLimit());
+            cardRepository.save(creditCard);
+            return "Card Updated";
+        } else throw new ResourceNotFound("Card not found for user");
     }
 
     /**

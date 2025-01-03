@@ -25,8 +25,8 @@ public class UserController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping
-    public ResponseEntity<UserDto> updateAppUser(@RequestBody UserDto user, @AuthenticationPrincipal UserDetails userDetails) throws InvalidInput {
-        UserDto updatedAppUser = bankUserService.updateUser(user,userDetails.getUsername());
+    public ResponseEntity<UserDto> updateAppUser(@RequestBody UserDto user) throws InvalidInput {
+        UserDto updatedAppUser = bankUserService.updateUser(user);
         return new ResponseEntity<>(updatedAppUser, HttpStatus.OK);
     }
 

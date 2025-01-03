@@ -71,8 +71,7 @@ public class BankUserService implements UserDetailsService {
      * @param userDto user info
      * @return UserDto
      */
-    public UserDto updateUser(UserDto userDto, String username) throws InvalidInput {
-        if (userDto.getUsername().equals(username)) {
+    public UserDto updateUser(UserDto userDto) throws InvalidInput {
             Optional<BankUser> existing = userRepository.findByUsername(userDto.getUsername());
             BankUser user = existing.orElseThrow(() -> new UsernameNotFoundException("Username not found"));
             user.setEmail(userDto.getEmail());
@@ -83,10 +82,6 @@ public class BankUserService implements UserDetailsService {
             user.setRoles(roles);
             userRepository.save(user);
             return userDto;
-        } else {
-            log.error("Invalid username");
-            throw new InvalidInput("Invalid username");
-        }
     }
 
 
