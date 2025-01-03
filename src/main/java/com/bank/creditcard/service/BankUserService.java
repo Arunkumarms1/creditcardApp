@@ -60,6 +60,7 @@ public class BankUserService implements UserDetailsService {
             roleRepository.saveAll(roles);
             return userRepository.save(user).getUsername() + " Added";
         } else {
+            log.error("Username already exists");
             throw new InvalidInput("Username exists");
         }
     }
@@ -83,6 +84,7 @@ public class BankUserService implements UserDetailsService {
             userRepository.save(user);
             return userDto;
         } else {
+            log.error("Invalid username");
             throw new InvalidInput("Invalid username");
         }
     }
@@ -95,11 +97,10 @@ public class BankUserService implements UserDetailsService {
      * @return Set of credit cards
      */
     public Set<CreditCardDto> getCards(String username) {
-        Optional<BankUser> bankUser = userRepository.findByUsername(username);
+        BankUser user = userRepository.findByUsername(username).orElseThrow();
         Set<CreditCardDto> cards = new HashSet<>();
-        bankUser.ifPresent(user -> user.getCreditCards().forEach(
-                creditCard -> cards.add(new CreditCardDto(creditCard.getCardNumber(), creditCard.getAvailableLimit()))
-        ));
+        user.getCreditCards().forEach(
+                creditCard -> cards.add(new CreditCardDto(creditCard.getCardNumber(), creditCard.getAvailableLimit())));
         return cards;
     }
 
